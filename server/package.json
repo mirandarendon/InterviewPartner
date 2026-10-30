@@ -1,0 +1,13 @@
+{
+  "name": "interview-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env index.js",
+    "start": "node --env-file-if-exists=.env index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.31.0",
+    "express": "^5.1.0"
+  }
+}
