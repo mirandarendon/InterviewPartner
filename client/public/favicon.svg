@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="13 -7 108 108">
+  <!-- Nimbus for the browser tab: thicker lines and bigger eyes so it reads at 16px.
+       Colors are written out because CSS variables don't work in favicons. -->
+  <path d="M28 76 H94 a22 22 0 0 0 2-44 a30 30 0 0 0-56-8 a24 24 0 0 0-12 52z" fill="#FFFFFF" stroke="#13284D" stroke-width="7" stroke-linejoin="round"/>
+  <circle cx="56" cy="50" r="6" fill="#13284D"/>
+  <circle cx="78" cy="50" r="6" fill="#13284D"/>
+  <ellipse cx="45" cy="61" rx="6" ry="4" fill="#9DB8F7"/>
+  <ellipse cx="89" cy="61" rx="6" ry="4" fill="#9DB8F7"/>
+  <path d="M61 61 q6 6 12 0" fill="none" stroke="#13284D" stroke-width="5" stroke-linecap="round"/>
+</svg>
