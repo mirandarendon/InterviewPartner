@@ -1,6 +1,7 @@
 // Nimbus, the cloud mascot / interviewer. Pure SVG, no image files.
 // size: width in px. sparkles: adds the little stars around it.
-export default function Nimbus({ size = 44, sparkles = false, label }) {
+// sleepy: closed eyes and a "z", for the "AI is busy" notice.
+export default function Nimbus({ size = 44, sparkles = false, sleepy = false, label }) {
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true };
 
   return (
@@ -12,11 +13,26 @@ export default function Nimbus({ size = 44, sparkles = false, label }) {
         strokeWidth={size < 80 ? 5 : 3.5}
         strokeLinejoin="round"
       />
-      <circle cx="56" cy="50" r="4" fill="var(--navy)" />
-      <circle cx="76" cy="50" r="4" fill="var(--navy)" />
+      {sleepy ? (
+        <>
+          <path d="M51 50 q5 4 10 0" fill="none" stroke="var(--navy)" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M71 50 q5 4 10 0" fill="none" stroke="var(--navy)" strokeWidth="3.5" strokeLinecap="round" />
+          <text x="98" y="22" fontSize="18" fontWeight="800" fill="var(--sky-300)" fontFamily="var(--font-display)">z</text>
+          <text x="108" y="10" fontSize="12" fontWeight="800" fill="var(--sky-300)" fontFamily="var(--font-display)">z</text>
+        </>
+      ) : (
+        <>
+          <circle cx="56" cy="50" r="4" fill="var(--navy)" />
+          <circle cx="76" cy="50" r="4" fill="var(--navy)" />
+        </>
+      )}
       <ellipse cx="48" cy="58" rx="5" ry="3" fill="var(--periwinkle)" />
       <ellipse cx="84" cy="58" rx="5" ry="3" fill="var(--periwinkle)" />
-      <path d="M61 59 q5 5 10 0" fill="none" stroke="var(--navy)" strokeWidth="3.5" strokeLinecap="round" />
+      {sleepy ? (
+        <ellipse cx="66" cy="62" rx="3.5" ry="2.5" fill="var(--navy)" />
+      ) : (
+        <path d="M61 59 q5 5 10 0" fill="none" stroke="var(--navy)" strokeWidth="3.5" strokeLinecap="round" />
+      )}
       {sparkles && (
         <>
           <path d="M104 14 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="var(--butter)" />

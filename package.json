@@ -1,0 +1,12 @@
+{
+  "name": "interview-partner",
+  "private": true,
+  "description": "AI mock interview practice: React client + Express server + Gemini",
+  "scripts": {
+    "build": "npm install --prefix server && npm install --prefix client --include=dev && npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "engines": {
+    "node": ">=22.9"
+  }
+}

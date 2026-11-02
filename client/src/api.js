@@ -20,12 +20,16 @@ async function post(path, body) {
   }
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`);
+  if (!res.ok) {
+    const err = new Error(data.error || `Request failed (${res.status}).`);
+    // 503 = AI busy, 504 = AI too slow. The UI shows a friendlier notice for these.
+    err.busy = res.status === 503 || res.status === 504;
+    throw err;
+  }
   return data;
 }
 
 // setup: { role, interviewType, style, numQuestions, jobDescription, resumeText }
-// (the server ignores resumeText until step 3e)
 // returns: { question }
 export function startInterview(setup) {
   if (USE_MOCK) return mock.startInterview(setup);
@@ -34,7 +38,6 @@ export function startInterview(setup) {
 
 // history: [{ role: "model" | "user", text }], ending with the user's latest answer
 // returns: { question }
-// Note: the real /api/answer route isn't built yet, so this only works in mock mode.
 export function submitAnswer(setup, history) {
   if (USE_MOCK) return mock.submitAnswer(setup, history);
   return post("/api/answer", { ...setup, history });
@@ -45,7 +48,6 @@ export function submitAnswer(setup, history) {
 //   overallScore: 1-10, summary, strengths: [], improvements: [],
 //   perQuestion: [{ question, scores: [{ criterion, score: 1-5, note }], tip }]
 // }
-// Note: the real /api/feedback route isn't built yet, so this only works in mock mode.
 export function getFeedback(setup, history) {
   if (USE_MOCK) return mock.getFeedback(setup, history);
   return post("/api/feedback", { ...setup, history });

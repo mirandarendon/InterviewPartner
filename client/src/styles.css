@@ -551,6 +551,45 @@ button:focus-visible {
   white-space: pre-wrap;
 }
 
+/* "AI is busy" notice */
+.busy-notice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--sky-50);
+  border: 2px dashed var(--sky-300);
+  border-radius: 18px;
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.busy-notice .nimbus {
+  flex-shrink: 0;
+  animation: float 4s ease-in-out infinite;
+}
+
+.busy-text {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.busy-text strong {
+  color: var(--navy);
+  font-size: 16px;
+}
+
+.busy-notice .secondary {
+  min-height: 44px;
+  padding: 10px 18px;
+  font-size: 15px;
+}
+
 .error.small {
   font-size: 14px;
   margin-top: 8px;

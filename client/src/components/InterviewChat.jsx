@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { submitAnswer } from "../api.js";
 import Nimbus from "./Nimbus.jsx";
+import ErrorNotice from "./ErrorNotice.jsx";
 
 // Shows the conversation and an answer box. After the last answer,
 // calls onFinished instead of asking for another question.
 export default function InterviewChat({ setup, history, setHistory, onFinished, onLeave }) {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const bottomRef = useRef(null);
 
   const total = Number(setup.numQuestions);
@@ -20,8 +21,9 @@ export default function InterviewChat({ setup, history, setHistory, onFinished, 
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [history, loading]);
 
+  // e is missing when called from the Try again button.
   async function handleSubmit(e) {
-    e.preventDefault();
+    e?.preventDefault();
     const text = draft.trim();
     if (!text || loading) return;
 
@@ -29,7 +31,7 @@ export default function InterviewChat({ setup, history, setHistory, onFinished, 
     const withAnswer = [...history, { role: "user", text }];
     setHistory(withAnswer);
     setDraft("");
-    setError("");
+    setError(null);
 
     // That was the last question: hand off to feedback.
     if (isLast) {
@@ -45,7 +47,7 @@ export default function InterviewChat({ setup, history, setHistory, onFinished, 
       // Undo so the user can try sending the same answer again.
       setHistory(before);
       setDraft(text);
-      setError(err.message);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -116,7 +118,8 @@ export default function InterviewChat({ setup, history, setHistory, onFinished, 
         </div>
 
         <form className="composer" onSubmit={handleSubmit}>
-          {error && <p className="error">{error}</p>}
+          {/* Your answer is put back in the box, so Try again just resends it. */}
+          <ErrorNotice error={error} onRetry={() => handleSubmit()} />
           <label className="field">
             Your answer
             <textarea

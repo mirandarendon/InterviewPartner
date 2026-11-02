@@ -2,6 +2,7 @@ import { useState } from "react";
 import { startInterview } from "../api.js";
 import Nimbus from "./Nimbus.jsx";
 import ResumeUpload from "./ResumeUpload.jsx";
+import ErrorNotice from "./ErrorNotice.jsx";
 
 // Fake data for quick testing. No real personal info.
 const SAMPLE = {
@@ -52,7 +53,7 @@ export default function SetupForm({ onStarted }) {
     resume: null, // { name, text } once a PDF is read
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
   // Updates one field of the form by name.
   function update(name, value) {
@@ -64,17 +65,18 @@ export default function SetupForm({ onStarted }) {
     update("numQuestions", Math.min(10, Math.max(1, form.numQuestions + by)));
   }
 
+  // e is missing when called from the Try again button.
   async function handleSubmit(e) {
-    e.preventDefault();
+    e?.preventDefault();
     setLoading(true);
-    setError("");
+    setError(null);
     // The server only needs the resume text, not the file name.
     const setup = { ...form, resume: undefined, resumeText: form.resume?.text || "" };
     try {
       const { question } = await startInterview(setup);
       onStarted(setup, question);
     } catch (err) {
-      setError(err.message);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -178,7 +180,7 @@ export default function SetupForm({ onStarted }) {
           </fieldset>
         </div>
 
-        {error && <p className="error">{error}</p>}
+        <ErrorNotice error={error} onRetry={loading ? null : () => handleSubmit()} />
 
         <div className="form-actions">
           <button type="button" className="link-button" onClick={() => setForm({ ...form, ...SAMPLE, resume: SAMPLE_RESUME })}>

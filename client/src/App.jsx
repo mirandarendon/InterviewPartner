@@ -4,6 +4,7 @@ import SetupForm from "./components/SetupForm.jsx";
 import InterviewChat, { Thinking } from "./components/InterviewChat.jsx";
 import FeedbackCard from "./components/FeedbackCard.jsx";
 import Nimbus from "./components/Nimbus.jsx";
+import ErrorNotice from "./components/ErrorNotice.jsx";
 import { USE_MOCK, getFeedback } from "./api.js";
 
 // App decides which screen to show. Stages:
@@ -17,7 +18,7 @@ export default function App() {
   // [{ role: "model", text: question }, { role: "user", text: answer }, ...]
   const [history, setHistory] = useState([]);
   const [feedback, setFeedback] = useState(null);
-  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackError, setFeedbackError] = useState(null);
 
   function handleStarted(setupData, firstQuestion) {
     setSetup(setupData);
@@ -34,18 +35,18 @@ export default function App() {
   // Fetched here (not inside FeedbackCard) so it runs exactly once per interview.
   async function loadFeedback(finalHistory) {
     setFeedback(null);
-    setFeedbackError("");
+    setFeedbackError(null);
     try {
       setFeedback(await getFeedback(setup, finalHistory));
     } catch (err) {
-      setFeedbackError(err.message);
+      setFeedbackError(err);
     }
   }
 
   function startOver() {
     setHistory([]);
     setFeedback(null);
-    setFeedbackError("");
+    setFeedbackError(null);
     setStage("setup");
   }
 
@@ -75,10 +76,11 @@ export default function App() {
 
         {stage === "feedback" && !feedback && (
           <section className="card waiting">
-            <Nimbus size={110} sparkles />
+            {/* Busy errors bring their own sleepy Nimbus, so only show this one otherwise. */}
+            {!feedbackError?.busy && <Nimbus size={110} sparkles />}
             {feedbackError ? (
               <>
-                <p className="error">{feedbackError}</p>
+                <ErrorNotice error={feedbackError} />
                 <div className="center-actions">
                   <button className="secondary" onClick={startOver}>
                     Start over

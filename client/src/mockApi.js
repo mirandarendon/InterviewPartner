@@ -30,6 +30,13 @@ function delay(ms = 800) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Same shape as the error api.js throws when the server says the AI is busy.
+function busyError() {
+  const err = new Error("The AI is busy right now. Please try again in a minute.");
+  err.busy = true;
+  return err;
+}
+
 // Picks a random question of the right type that hasn't been asked yet.
 function nextQuestion(interviewType, history) {
   const asked = history.filter((m) => m.role === "model").map((m) => m.text);
@@ -40,7 +47,8 @@ function nextQuestion(interviewType, history) {
 
 export async function startInterview(setup) {
   await delay();
-  // Type "error" as the role to see how the UI shows a failure.
+  // Type "error" or "busy" as the role to see how the UI shows a failure.
+  if (setup.role.trim().toLowerCase() === "busy") throw busyError();
   if (setup.role.trim().toLowerCase() === "error") {
     throw new Error("Mock error: this is what a server error looks like.");
   }
@@ -77,6 +85,7 @@ function fakeScore(answer) {
 export async function getFeedback(setup, history) {
   await delay(1200);
   const pairs = toPairs(history);
+  if (pairs.some((p) => p.answer.trim().toLowerCase() === "feedback busy")) throw busyError();
   if (pairs.some((p) => p.answer.trim().toLowerCase() === "feedback error")) {
     throw new Error("Mock error: feedback couldn't be generated.");
   }
@@ -110,8 +119,9 @@ export async function getFeedback(setup, history) {
 
 export async function submitAnswer(setup, history) {
   await delay();
-  // Answer "error" to see how the chat shows a failure.
+  // Answer "error" or "busy" to see how the chat shows a failure.
   const lastAnswer = history[history.length - 1].text;
+  if (lastAnswer.trim().toLowerCase() === "busy") throw busyError();
   if (lastAnswer.trim().toLowerCase() === "error") {
     throw new Error("Mock error: the next question couldn't be loaded.");
   }
