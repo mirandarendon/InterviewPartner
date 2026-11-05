@@ -47,17 +47,19 @@ export class UserFacingError extends Error {
 // systemPrompt: instructions for the model (who it is, what to do)
 // messages: [{ role: "user" | "model", text: "..." }]
 // options.json: ask Gemini to reply with JSON only (used by the evaluator)
+// options.maxTokens: hard limit on reply length
 export async function generate(systemPrompt, messages, options = {}) {
+  let response;
   try {
-    const response = await getClient().models.generateContent({
+    response = await getClient().models.generateContent({
       model: MODEL,
       contents: messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
       config: {
         systemInstruction: systemPrompt,
         ...(options.json && { responseMimeType: "application/json" }),
+        ...(options.maxTokens && { maxOutputTokens: options.maxTokens }),
       },
     });
-    return response.text;
   } catch (err) {
     if (err instanceof UserFacingError) throw err;
     console.error("Gemini error:", err.status, err.name, err.message);
@@ -78,4 +80,11 @@ export async function generate(systemPrompt, messages, options = {}) {
     }
     throw new UserFacingError("The AI service had a problem. Please try again.", 502);
   }
+
+  // An empty reply usually means the length cap was hit or a safety filter blocked it.
+  if (!response.text) {
+    console.error("Gemini returned no text. Finish reason:", response.candidates?.[0]?.finishReason);
+    throw new UserFacingError("The AI didn't return a response. Please try again.", 502);
+  }
+  return response.text;
 }

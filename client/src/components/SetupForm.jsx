@@ -113,6 +113,7 @@ export default function SetupForm({ onStarted }) {
             value={form.role}
             onChange={(e) => update("role", e.target.value)}
             placeholder="e.g. Software Engineer Intern"
+            maxLength={100}
             required
           />
         </label>

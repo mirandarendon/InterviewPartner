@@ -41,11 +41,12 @@ const INTERVIEW_TYPES = ["behavioral", "technical", "mixed"];
 const STYLES = ["friendly", "neutral", "tough"];
 const MAX_TEXT = 15000; // matches the client's resume limit
 const MAX_ANSWER = 5000;
+const MAX_ROLE = 100; // a job title, not a paragraph (also limits prompt injection room)
 
 // Checks the setup form and fills in defaults. Throws a 400 if something is invalid.
 function readSetup(body) {
   const setup = {
-    role: String(body.role || "").trim(),
+    role: String(body.role || "").trim().slice(0, MAX_ROLE),
     interviewType: body.interviewType || "behavioral",
     style: body.style || "neutral",
     numQuestions: Number(body.numQuestions) || 5,
@@ -78,11 +79,18 @@ function readHistory(body) {
 // call begins with this kickoff message (the client never sees it).
 const KICKOFF = { role: "user", text: "Begin the interview." };
 
+// Hard caps on reply length, so the app can't be used as a free general chatbot.
+// Generous on purpose: Gemini's "thinking" tokens count toward this limit too.
+const INTERVIEWER_MAX_TOKENS = 2048;
+const EVALUATOR_MAX_TOKENS = 8192;
+
 // Setup options in, first question out.
 app.post("/api/start", async (req, res, next) => {
   try {
     const setup = readSetup(req.body);
-    const question = await generate(interviewerPrompt({ ...setup, questionNumber: 1 }), [KICKOFF]);
+    const question = await generate(interviewerPrompt({ ...setup, questionNumber: 1 }), [KICKOFF], {
+      maxTokens: INTERVIEWER_MAX_TOKENS,
+    });
     res.json({ question: question.trim() });
   } catch (err) {
     next(err);
@@ -95,7 +103,9 @@ app.post("/api/answer", async (req, res, next) => {
     const setup = readSetup(req.body);
     const history = readHistory(req.body);
     const asked = history.filter((m) => m.role === "model").length;
-    const question = await generate(interviewerPrompt({ ...setup, questionNumber: asked + 1 }), [KICKOFF, ...history]);
+    const question = await generate(interviewerPrompt({ ...setup, questionNumber: asked + 1 }), [KICKOFF, ...history], {
+      maxTokens: INTERVIEWER_MAX_TOKENS,
+    });
     res.json({ question: question.trim() });
   } catch (err) {
     next(err);
@@ -109,6 +119,7 @@ app.post("/api/feedback", async (req, res, next) => {
     const history = readHistory(req.body);
     const raw = await generate(evaluatorPrompt(setup), [{ role: "user", text: evaluatorTranscript(history) }], {
       json: true,
+      maxTokens: EVALUATOR_MAX_TOKENS,
     });
     const answered = history.filter((m) => m.role === "user").length;
     res.json(parseFeedback(raw, answered));
